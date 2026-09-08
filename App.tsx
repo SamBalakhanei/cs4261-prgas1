@@ -11,16 +11,8 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import { createPost, fetchPosts, Post, subscribeToPosts } from './api';
 import { styles } from './styles';
-import { supabase } from './supabase';
-
-// ── Types ───────────────────────────────────────────────────────────────────
-interface Post {
-  id: string;
-  message: string;
-  emoji: string;
-  created_at: string;
-}
 
 // ── Emoji palette ───────────────────────────────────────────────────────────
 const EMOJIS = ['😃', '😢', '😡', '❤️', '🎉', '🤔'];
@@ -35,64 +27,30 @@ export default function App() {
 
   // ── Fetch posts & subscribe to realtime ─────────────────────────────────
   useEffect(() => {
-    const fetchPosts = async () => {
-      try {
-        const { data: posts, error } = await supabase
-          .from('posts')
-          .select()
-          .order('created_at', { ascending: false });
-
-        if (error) {
-          console.error('Error fetching posts:', error.message);
-          return;
-        }
-
-        if (posts && posts.length > 0) {
-          setPosts(posts);
-        }
-      } catch (error: any) {
-        console.error('Error fetching posts:', error.message);
-      } finally {
-        setLoading(false);
+    const load = async () => {
+      const data = await fetchPosts();
+      if (data.length > 0) {
+        setPosts(data);
       }
+      setLoading(false);
     };
 
-    fetchPosts();
+    load();
 
-    // Subscribe to new posts in realtime
-    const channel = supabase
-      .channel('posts-feed')
-      .on(
-        'postgres_changes',
-        { event: 'INSERT', schema: 'public', table: 'posts' },
-        (payload) => {
-          setPosts((prev) => [payload.new as Post, ...prev]);
-        }
-      )
-      .subscribe();
+    const unsubscribe = subscribeToPosts((newPost) => {
+      setPosts((prev) => [newPost, ...prev]);
+    });
 
-    return () => {
-      supabase.removeChannel(channel);
-    };
+    return unsubscribe;
   }, []);
 
   // ── Handlers ────────────────────────────────────────────────────────────
   const handlePost = async () => {
     if (!message.trim()) return;
 
-    try {
-      const { error } = await supabase
-        .from('posts')
-        .insert({ message: message.trim(), emoji: selectedEmoji });
-
-      if (error) {
-        console.error('Error creating post:', error.message);
-        return;
-      }
-
+    const success = await createPost(message.trim(), selectedEmoji);
+    if (success) {
       setMessage('');
-    } catch (error: any) {
-      console.error('Error creating post:', error.message);
     }
   };
 
