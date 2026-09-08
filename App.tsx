@@ -1,6 +1,7 @@
 import { StatusBar } from 'expo-status-bar';
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
+  ActivityIndicator,
   Animated,
   FlatList,
   KeyboardAvoidingView,
@@ -11,6 +12,7 @@ import {
   View,
 } from 'react-native';
 import { styles } from './styles';
+import { supabase } from './supabase';
 
 // ── Types ───────────────────────────────────────────────────────────────────
 interface Post {
@@ -28,21 +30,70 @@ export default function App() {
   const [message, setMessage] = useState('');
   const [selectedEmoji, setSelectedEmoji] = useState('😃');
   const [posts, setPosts] = useState<Post[]>([]);
+  const [loading, setLoading] = useState(true);
   const buttonScale = useRef(new Animated.Value(1)).current;
 
-  // ── Handlers ────────────────────────────────────────────────────────────
-  const handlePost = () => {
-    if (!message.trim()) return;
+  // ── Fetch posts & subscribe to realtime ─────────────────────────────────
+  useEffect(() => {
+    const fetchPosts = async () => {
+      try {
+        const { data: posts, error } = await supabase
+          .from('posts')
+          .select()
+          .order('created_at', { ascending: false });
 
-    const newPost: Post = {
-      id: Date.now().toString(),
-      message: message.trim(),
-      emoji: selectedEmoji,
-      created_at: new Date().toISOString(),
+        if (error) {
+          console.error('Error fetching posts:', error.message);
+          return;
+        }
+
+        if (posts && posts.length > 0) {
+          setPosts(posts);
+        }
+      } catch (error: any) {
+        console.error('Error fetching posts:', error.message);
+      } finally {
+        setLoading(false);
+      }
     };
 
-    setPosts((prev) => [newPost, ...prev]);
-    setMessage('');
+    fetchPosts();
+
+    // Subscribe to new posts in realtime
+    const channel = supabase
+      .channel('posts-feed')
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'posts' },
+        (payload) => {
+          setPosts((prev) => [payload.new as Post, ...prev]);
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, []);
+
+  // ── Handlers ────────────────────────────────────────────────────────────
+  const handlePost = async () => {
+    if (!message.trim()) return;
+
+    try {
+      const { error } = await supabase
+        .from('posts')
+        .insert({ message: message.trim(), emoji: selectedEmoji });
+
+      if (error) {
+        console.error('Error creating post:', error.message);
+        return;
+      }
+
+      setMessage('');
+    } catch (error: any) {
+      console.error('Error creating post:', error.message);
+    }
   };
 
   const animateButton = () => {
@@ -79,9 +130,15 @@ export default function App() {
   // ── Empty state ────────────────────────────────────────────────────────
   const renderEmpty = () => (
     <View style={styles.emptyContainer}>
-      <Text style={styles.emptyEmoji}>💬</Text>
-      <Text style={styles.emptyTitle}>No messages yet</Text>
-      <Text style={styles.emptySubtitle}>Be the first to post!</Text>
+      {loading ? (
+        <ActivityIndicator size="large" color="#6C63FF" />
+      ) : (
+        <>
+          <Text style={styles.emptyEmoji}>💬</Text>
+          <Text style={styles.emptyTitle}>No messages yet</Text>
+          <Text style={styles.emptySubtitle}>Be the first to post!</Text>
+        </>
+      )}
     </View>
   );
 
