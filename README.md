@@ -46,7 +46,7 @@ Copy the example env file and fill in the Supabase credentials:
 cp .env.example .env
 ```
 
-Then edit `.env` and replace the placeholder values with the real Supabase URL and anon key.
+Then edit `.env` and replace the placeholder values with the real Supabase URL and key.
 
 ### 4. Log in to Expo
 
