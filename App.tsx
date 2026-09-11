@@ -14,10 +14,9 @@ import {
 import { createPost, fetchPosts, Post, subscribeToPosts } from './api';
 import { styles } from './styles';
 
-// ── Emoji palette ───────────────────────────────────────────────────────────
+// Emoji palette
 const EMOJIS = ['😃', '😢', '😡', '❤️', '🎉', '🤔'];
 
-// ── Main App ────────────────────────────────────────────────────────────────
 export default function App() {
   const [message, setMessage] = useState('');
   const [selectedEmoji, setSelectedEmoji] = useState('😃');
@@ -25,7 +24,7 @@ export default function App() {
   const [loading, setLoading] = useState(true);
   const buttonScale = useRef(new Animated.Value(1)).current;
 
-  // ── Fetch posts & subscribe to realtime ─────────────────────────────────
+  // Fetch posts & subscribe to realtime
   useEffect(() => {
     const load = async () => {
       const data = await fetchPosts();
@@ -44,7 +43,7 @@ export default function App() {
     return unsubscribe;
   }, []);
 
-  // ── Handlers ────────────────────────────────────────────────────────────
+  // Handlers
   const handlePost = async () => {
     if (!message.trim()) return;
 
@@ -74,7 +73,7 @@ export default function App() {
     return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   };
 
-  // ── Render a single post ───────────────────────────────────────────────
+  // Render a single post
   const renderPost = ({ item }: { item: Post }) => (
     <View style={styles.postCard}>
       <Text style={styles.postEmoji}>{item.emoji}</Text>
@@ -85,7 +84,7 @@ export default function App() {
     </View>
   );
 
-  // ── Empty state ────────────────────────────────────────────────────────
+  // Empty state
   const renderEmpty = () => (
     <View style={styles.emptyContainer}>
       {loading ? (
@@ -100,7 +99,7 @@ export default function App() {
     </View>
   );
 
-  // ── UI ─────────────────────────────────────────────────────────────────
+  // UI
   return (
     <KeyboardAvoidingView
       style={styles.root}

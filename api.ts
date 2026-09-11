@@ -1,6 +1,6 @@
 import { supabase } from './supabase';
 
-// ── Types ───────────────────────────────────────────────────────────────────
+// Types
 export interface Post {
   id: string;
   message: string;
@@ -8,7 +8,7 @@ export interface Post {
   created_at: string;
 }
 
-// ── Fetch all posts (newest first) ──────────────────────────────────────────
+// Fetch all posts (newest first)
 export async function fetchPosts(): Promise<Post[]> {
   try {
     const { data: posts, error } = await supabase
@@ -28,7 +28,7 @@ export async function fetchPosts(): Promise<Post[]> {
   }
 }
 
-// ── Insert a new post ───────────────────────────────────────────────────────
+// Insert a new post
 export async function createPost(message: string, emoji: string): Promise<boolean> {
   try {
     const { error } = await supabase
@@ -47,7 +47,7 @@ export async function createPost(message: string, emoji: string): Promise<boolea
   }
 }
 
-// ── Subscribe to new posts in realtime ──────────────────────────────────────
+// Subscribe to new posts in real time
 export function subscribeToPosts(onNewPost: (post: Post) => void) {
   const channel = supabase
     .channel('posts-feed')
