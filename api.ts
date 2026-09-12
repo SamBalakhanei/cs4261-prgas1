@@ -52,7 +52,7 @@ export async function updatePost(id: string, message: string): Promise<boolean> 
   try {
     const { error } = await supabase
       .from('posts')
-      .update({ message })
+      .update({ message, created_at: new Date().toISOString() })
       .eq('id', id);
     
     if (error) {

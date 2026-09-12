@@ -95,8 +95,10 @@ export default function App() {
     const trimmed = editText.trim();
     if (!trimmed) return;
 
+    const now = new Date().toISOString();
+
     setPosts((prev) => 
-      prev.map((p) => (p.id === id ? { ...p, message: trimmed } : p))
+      prev.map((p) => (p.id === id ? { ...p, message: trimmed, created_at: now } : p))
     );
     setEditingId(null);
     setEditText('');
