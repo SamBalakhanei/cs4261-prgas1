@@ -2,6 +2,7 @@ import { StatusBar } from 'expo-status-bar';
 import { useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
+  Alert,
   Animated,
   FlatList,
   KeyboardAvoidingView,
@@ -11,7 +12,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { createPost, fetchPosts, Post, subscribeToPosts } from './api';
+import { createPost, deletePost, fetchPosts, Post, subscribeToPosts, updatePost } from './api';
 import { styles } from './styles';
 
 // Emoji palette
@@ -22,6 +23,9 @@ export default function App() {
   const [selectedEmoji, setSelectedEmoji] = useState('😃');
   const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editText, setEditText] = useState('');
+  const [editEmoji, setEditEmoji] = useState('😃');
   const buttonScale = useRef(new Animated.Value(1)).current;
 
   // Fetch posts & subscribe to realtime
@@ -36,8 +40,18 @@ export default function App() {
 
     load();
 
-    const unsubscribe = subscribeToPosts((newPost) => {
-      setPosts((prev) => [newPost, ...prev]);
+    const unsubscribe = subscribeToPosts({
+      onNewPost: (newPost) => {
+        setPosts((prev) => [newPost, ...prev]);
+      },
+      onUpdate: (updatedPost) => {
+        setPosts((prev) => 
+          prev.map((p) => (p.id === updatedPost.id ? updatedPost : p))
+        );
+      },
+      onDelete: (id) => {
+        setPosts((prev) => prev.filter((p) => p.id !== id));
+      },
     });
 
     return unsubscribe;
@@ -68,6 +82,59 @@ export default function App() {
     ]).start(() => handlePost());
   };
 
+  const startEdit = (post: Post) => {
+    setEditingId(post.id);
+    setEditText(post.message);
+    setEditEmoji(post.emoji);
+  };
+
+  const cancelEdit = () => {
+    setEditingId(null);
+    setEditText('');
+    setEditEmoji('😃');
+  };
+
+  const saveEdit = async (id: string) => {
+    const trimmed = editText.trim();
+    if (!trimmed) return;
+
+    const now = new Date().toISOString();
+
+    setPosts((prev) => 
+      prev.map((p) => (p.id === id ? { ...p, message: trimmed, emoji: editEmoji, created_at: now } : p))
+    );
+    setEditingId(null);
+    setEditText('');
+
+    const success = await updatePost(id, trimmed, editEmoji);
+    if (!success) {
+      Alert.alert('Edit failed', 'Could not save your changes. Please try again.');
+    }
+  };
+
+  const confirmDelete = (id: string) => {
+    Alert.alert(
+      'Delete message?',
+      'This cannot be undone.',
+      [
+        {text: 'Cancel', style: 'cancel'},
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: async () => {
+            const previous = posts;
+            setPosts((prev) => prev.filter((p) => p.id !== id));
+            const success = await deletePost(id);
+            if (!success) {
+              setPosts(previous);
+              Alert.alert('Delete failed', 'Could not delete this message. Please try again.');
+            }
+          }
+        }
+      ]
+    );
+  }
+
   const formatTime = (iso: string) => {
     const d = new Date(iso);
     const date = `${String(d.getMonth() + 1).padStart(2, '0')}/${String(d.getDate()).padStart(2, '0')}/${d.getFullYear()}`;
@@ -76,15 +143,81 @@ export default function App() {
   };
 
   // Render a single post
-  const renderPost = ({ item }: { item: Post }) => (
-    <View style={styles.postCard}>
-      <Text style={styles.postEmoji}>{item.emoji}</Text>
-      <View style={styles.postContent}>
-        <Text style={styles.postMessage}>{item.message}</Text>
-        <Text style={styles.postTime}>{formatTime(item.created_at)}</Text>
+  const renderPost = ({ item }: { item: Post }) => {
+    const isEditing = editingId === item.id;
+
+    return (
+      <View style={styles.postCard}>
+        <Text style={styles.postEmoji}>{item.emoji}</Text>
+        <View style={styles.postContent}>
+          {isEditing ? (
+            <>
+              <View style={styles.editEmojiRow}>
+                {EMOJIS.map((emoji) => (
+                  <TouchableOpacity
+                    key={emoji}
+                    onPress={() => setEditEmoji(emoji)}
+                    style={[
+                      styles.editEmojiButton,
+                      editEmoji === emoji && styles.emojiButtonSelected,
+                    ]}
+                  >
+                    <Text style={styles.emojiText}>{emoji}</Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+              <TextInput
+                style={styles.editInput}
+                value={editText}
+                onChangeText={setEditText}
+                multiline
+                autoFocus
+                maxLength={280}
+              />
+              <View style={styles.editActions}>
+                <TouchableOpacity
+                  style={[styles.editActionButton, styles.editActionCancel]}
+                  onPress={cancelEdit}
+                >
+                  <Text style={styles.editActionText}>Cancel</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[styles.editActionButton, styles.editActionSave]}
+                  onPress={() => saveEdit(item.id)}
+                  disabled={!editText.trim()}
+                >
+                  <Text style={styles.editActionText}>Save</Text>
+                </TouchableOpacity>
+              </View>
+            </>
+          ) : (
+            <>
+              <View style={styles.postHeaderRow}>
+                <Text style={styles.postMessage}>{item.message}</Text>
+                <View style={styles.postActions}>
+                  <TouchableOpacity
+                    style={styles.postActionButton}
+                    onPress={() => startEdit(item)}
+                    hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
+                  >
+                    <Text style={styles.postActionIcon}>✏️</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={styles.postActionButton}
+                    onPress={() => confirmDelete(item.id)}
+                    hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
+                  >
+                    <Text style={styles.postActionIcon}>🗑️</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+              <Text style={styles.postTime}>{formatTime(item.created_at)}</Text>
+            </>
+          )}
+        </View>
       </View>
-    </View>
-  );
+    );
+  };
 
   // Empty state
   const renderEmpty = () => (

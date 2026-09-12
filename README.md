@@ -5,6 +5,8 @@ A real-time message board mobile app built with React Native (Expo) and Supabase
 ## What It Does
 
 - **Post messages** — Type a message (up to 280 characters), choose one of six emoji moods, and tap Post.
+- **Edit messages** — Tap the pencil icon on any post to edit its text and/or emoji mood inline, then Save or Cancel. Edited posts move to the top of the feed.
+- **Delete messages** — Tap the trash icon on any post to remove it, with a confirmation prompt before it's deleted.
 - **Shared feed** — Every post is stored in a Supabase PostgreSQL database and displayed in a scrollable feed, newest first.
 - **Real-time updates** — Posts from other users appear instantly on your device via Supabase Realtime (WebSocket). No need to refresh.
 - **Cross-device** — Multiple people can run the app simultaneously on their phones and see each other's messages appear live.

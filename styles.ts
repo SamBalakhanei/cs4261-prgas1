@@ -134,6 +134,23 @@ export const styles = StyleSheet.create({
     fontSize: 22,
   },
 
+    // ── Inline edit emoji row ────────────────────────────────────────────
+  editEmojiRow: {
+    flexDirection: 'row',
+    gap: 6,
+    marginBottom: 8,
+  },
+  editEmojiButton: {
+    width: 34,
+    height: 34,
+    borderRadius: 10,
+    backgroundColor: COLORS.surfaceLight,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 2,
+    borderColor: 'transparent',
+  },
+
   // ── Input row ────────────────────────────────────────────────────────
   inputRow: {
     flexDirection: 'row',
@@ -166,5 +183,64 @@ export const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 15,
     fontWeight: '700',
+  },
+
+  // ── Post header row (message + actions) ─────────────────────────────
+  postHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    justifyContent: 'space-between',
+  },
+  postActions: {
+    flexDirection: 'row',
+    gap: 4,
+    marginLeft: 8,
+  },
+  postActionButton: {
+    width: 26,
+    height: 26,
+    borderRadius: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  postActionIcon: {
+    fontSize: 13,
+  },
+
+// ── Inline edit UI ───────────────────────────────────────────────────
+  editInput: {
+    fontSize: 15,
+    color: COLORS.text,
+    lineHeight: 21,
+    backgroundColor: COLORS.surfaceLight,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: COLORS.accent,
+    padding: 10,
+    minHeight: 40,
+  },
+  editActions: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    gap: 8,
+    marginTop: 8,
+  },
+  editActionButton: {
+    paddingVertical: 6,
+    paddingHorizontal: 14,
+    borderRadius: 10,
+  },
+  editActionCancel: {
+    backgroundColor: COLORS.surfaceLight,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+  },
+  editActionSave: {
+    backgroundColor: COLORS.accent,
+  },
+  editActionText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: COLORS.text,
   },
 });
