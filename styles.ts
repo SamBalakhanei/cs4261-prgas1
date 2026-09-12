@@ -134,6 +134,23 @@ export const styles = StyleSheet.create({
     fontSize: 22,
   },
 
+    // ── Inline edit emoji row ────────────────────────────────────────────
+  editEmojiRow: {
+    flexDirection: 'row',
+    gap: 6,
+    marginBottom: 8,
+  },
+  editEmojiButton: {
+    width: 34,
+    height: 34,
+    borderRadius: 10,
+    backgroundColor: COLORS.surfaceLight,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 2,
+    borderColor: 'transparent',
+  },
+
   // ── Input row ────────────────────────────────────────────────────────
   inputRow: {
     flexDirection: 'row',

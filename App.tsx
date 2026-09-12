@@ -25,6 +25,7 @@ export default function App() {
   const [loading, setLoading] = useState(true);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editText, setEditText] = useState('');
+  const [editEmoji, setEditEmoji] = useState('😃');
   const buttonScale = useRef(new Animated.Value(1)).current;
 
   // Fetch posts & subscribe to realtime
@@ -84,11 +85,13 @@ export default function App() {
   const startEdit = (post: Post) => {
     setEditingId(post.id);
     setEditText(post.message);
+    setEditEmoji(post.emoji);
   };
 
   const cancelEdit = () => {
     setEditingId(null);
     setEditText('');
+    setEditEmoji('😃');
   };
 
   const saveEdit = async (id: string) => {
@@ -98,12 +101,12 @@ export default function App() {
     const now = new Date().toISOString();
 
     setPosts((prev) => 
-      prev.map((p) => (p.id === id ? { ...p, message: trimmed, created_at: now } : p))
+      prev.map((p) => (p.id === id ? { ...p, message: trimmed, emoji: editEmoji, created_at: now } : p))
     );
     setEditingId(null);
     setEditText('');
 
-    const success = await updatePost(id, trimmed);
+    const success = await updatePost(id, trimmed, editEmoji);
     if (!success) {
       Alert.alert('Edit failed', 'Could not save your changes. Please try again.');
     }
@@ -149,6 +152,20 @@ export default function App() {
         <View style={styles.postContent}>
           {isEditing ? (
             <>
+              <View style={styles.editEmojiRow}>
+                {EMOJIS.map((emoji) => (
+                  <TouchableOpacity
+                    key={emoji}
+                    onPress={() => setEditEmoji(emoji)}
+                    style={[
+                      styles.editEmojiButton,
+                      editEmoji === emoji && styles.emojiButtonSelected,
+                    ]}
+                  >
+                    <Text style={styles.emojiText}>{emoji}</Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
               <TextInput
                 style={styles.editInput}
                 value={editText}

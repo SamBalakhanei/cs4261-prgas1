@@ -48,11 +48,11 @@ export async function createPost(message: string, emoji: string): Promise<boolea
 }
 
 // Update a post
-export async function updatePost(id: string, message: string): Promise<boolean> {
+export async function updatePost(id: string, message: string, emoji: string): Promise<boolean> {
   try {
     const { error } = await supabase
       .from('posts')
-      .update({ message, created_at: new Date().toISOString() })
+      .update({ message, emoji, created_at: new Date().toISOString() })
       .eq('id', id);
     
     if (error) {
