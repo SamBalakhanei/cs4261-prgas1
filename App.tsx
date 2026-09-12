@@ -138,15 +138,67 @@ export default function App() {
   };
 
   // Render a single post
-  const renderPost = ({ item }: { item: Post }) => (
-    <View style={styles.postCard}>
-      <Text style={styles.postEmoji}>{item.emoji}</Text>
-      <View style={styles.postContent}>
-        <Text style={styles.postMessage}>{item.message}</Text>
-        <Text style={styles.postTime}>{formatTime(item.created_at)}</Text>
+  const renderPost = ({ item }: { item: Post }) => {
+    const isEditing = editingId === item.id;
+
+    return (
+      <View style={styles.postCard}>
+        <Text style={styles.postEmoji}>{item.emoji}</Text>
+        <View style={styles.postContent}>
+          {isEditing ? (
+            <>
+              <TextInput
+                style={styles.editInput}
+                value={editText}
+                onChangeText={setEditText}
+                multiline
+                autoFocus
+                maxLength={280}
+              />
+              <View style={styles.editActions}>
+                <TouchableOpacity
+                  style={[styles.editActionButton, styles.editActionCancel]}
+                  onPress={cancelEdit}
+                >
+                  <Text style={styles.editActionText}>Cancel</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[styles.editActionButton, styles.editActionSave]}
+                  onPress={() => saveEdit(item.id)}
+                  disabled={!editText.trim()}
+                >
+                  <Text style={styles.editActionText}>Save</Text>
+                </TouchableOpacity>
+              </View>
+            </>
+          ) : (
+            <>
+              <View style={styles.postHeaderRow}>
+                <Text style={styles.postMessage}>{item.message}</Text>
+                <View style={styles.postActions}>
+                  <TouchableOpacity
+                    style={styles.postActionButton}
+                    onPress={() => startEdit(item)}
+                    hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
+                  >
+                    <Text style={styles.postActionIcon}>✏️</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={styles.postActionButton}
+                    onPress={() => confirmDelete(item.id)}
+                    hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
+                  >
+                    <Text style={styles.postActionIcon}>🗑️</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+              <Text style={styles.postTime}>{formatTime(item.created_at)}</Text>
+            </>
+          )}
+        </View>
       </View>
-    </View>
-  );
+    );
+  };
 
   // Empty state
   const renderEmpty = () => (
