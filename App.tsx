@@ -2,6 +2,7 @@ import { StatusBar } from 'expo-status-bar';
 import { useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
+  Alert,
   Animated,
   FlatList,
   KeyboardAvoidingView,
@@ -11,7 +12,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { createPost, fetchPosts, Post, subscribeToPosts } from './api';
+import { createPost, deletePost, fetchPosts, Post, subscribeToPosts, updatePost } from './api';
 import { styles } from './styles';
 
 // Emoji palette
@@ -22,6 +23,8 @@ export default function App() {
   const [selectedEmoji, setSelectedEmoji] = useState('😃');
   const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editText, setEditText] = useState('');
   const buttonScale = useRef(new Animated.Value(1)).current;
 
   // Fetch posts & subscribe to realtime
@@ -36,8 +39,18 @@ export default function App() {
 
     load();
 
-    const unsubscribe = subscribeToPosts((newPost) => {
-      setPosts((prev) => [newPost, ...prev]);
+    const unsubscribe = subscribeToPosts({
+      onNewPost: (newPost) => {
+        setPosts((prev) => [newPost, ...prev]);
+      },
+      onUpdate: (updatedPost) => {
+        setPosts((prev) => 
+          prev.map((p) => (p.id === updatedPost.id ? updatedPost : p))
+        );
+      },
+      onDelete: (id) => {
+        setPosts((prev) => prev.filter((p) => p.id !== id));
+      },
     });
 
     return unsubscribe;
@@ -67,6 +80,55 @@ export default function App() {
       }),
     ]).start(() => handlePost());
   };
+
+  const startEdit = (post: Post) => {
+    setEditingId(post.id);
+    setEditText(post.message);
+  };
+
+  const cancelEdit = () => {
+    setEditingId(null);
+    setEditText('');
+  };
+
+  const saveEdit = async (id: string) => {
+    const trimmed = editText.trim();
+    if (!trimmed) return;
+
+    setPosts((prev) => 
+      prev.map((p) => (p.id === id ? { ...p, message: trimmed } : p))
+    );
+    setEditingId(null);
+    setEditText('');
+
+    const success = await updatePost(id, trimmed);
+    if (!success) {
+      Alert.alert('Edit failed', 'Could not save your changes. Please try again.');
+    }
+  };
+
+  const confirmDelete = (id: string) => {
+    Alert.alert(
+      'Delete message?',
+      'This cannot be undone.',
+      [
+        {text: 'Cancel', style: 'cancel'},
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: async () => {
+            const previous = posts;
+            setPosts((prev) => prev.filter((p) => p.id !== id));
+            const success = await deletePost(id);
+            if (!success) {
+              setPosts(previous);
+              Alert.alert('Delete failed', 'Could not delete this message. Please try again.');
+            }
+          }
+        }
+      ]
+    );
+  }
 
   const formatTime = (iso: string) => {
     const d = new Date(iso);
