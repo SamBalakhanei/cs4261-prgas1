@@ -47,15 +47,71 @@ export async function createPost(message: string, emoji: string): Promise<boolea
   }
 }
 
-// Subscribe to new posts in real time
-export function subscribeToPosts(onNewPost: (post: Post) => void) {
+// Update a post
+export async function updatePost(id: string, message: string): Promise<boolean> {
+  try {
+    const { error } = await supabase
+      .from('posts')
+      .update({ message })
+      .eq('id', id);
+    
+    if (error) {
+      console.error('Error updating post: , error.message');
+      return false;
+    }
+    return true;
+  } catch (error: any) {
+    console.error('Error updating post: ', error.message);
+    return false;  
+  }
+}
+
+// Delete a post
+export async function deletePost(id: string): Promise<boolean> {
+  try {
+    const { error } = await supabase
+      .from('posts')
+      .delete()
+      .eq('id', id);
+    
+    if (error) {
+      console.error('Error deleting post: ', error.message);
+      return false;
+    }
+    return true;
+  } catch (error: any) {
+    console.error('Error deleting post: ', error.message);
+    return false;
+  }
+}
+
+// Subscribe to posts in real time (insert, update, delete)
+export function subscribeToPosts(handlers: {
+  onNewPost?: (post: Post) => void;
+  onUpdate?: (post: Post) => void;
+  onDelete?: (id: string) => void;
+}) {
   const channel = supabase
     .channel('posts-feed')
     .on(
       'postgres_changes',
       { event: 'INSERT', schema: 'public', table: 'posts' },
       (payload) => {
-        onNewPost(payload.new as Post);
+        handlers.onNewPost?.(payload.new as Post);
+      }
+    )
+    .on(
+      'postgres_changes',
+      { event: 'UPDATE', schema: 'public', table: 'posts' },
+      (payload) => {
+        handlers.onUpdate?.(payload.new as Post);
+      }
+    )
+    .on(
+      'postgres_changes',
+      { event: 'DELETE', schema: 'public', table: 'posts' },
+      (payload) => {
+        handlers.onDelete?.((payload.old as Post).id);
       }
     )
     .subscribe();
