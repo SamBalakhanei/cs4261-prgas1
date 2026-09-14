@@ -28,6 +28,11 @@ export const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: COLORS.border,
   },
+  logoutText: {
+    color: '#fff',
+    fontSize: 14,
+    fontWeight: '600',
+  },
   headerTitle: {
     fontSize: 26,
     fontWeight: '700',

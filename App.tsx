@@ -14,6 +14,7 @@ import {
 } from 'react-native';
 import { createPost, deletePost, fetchPosts, Post, subscribeToPosts, updatePost } from './api';
 import { styles } from './styles';
+import {supabase} from './supabase';
 
 // Emoji palette
 const EMOJIS = ['😃', '😢', '😡', '❤️', '🎉', '🤔'];
@@ -64,6 +65,13 @@ export default function App() {
     const success = await createPost(message.trim(), selectedEmoji);
     if (success) {
       setMessage('');
+    }
+  };
+
+  const handleLogout = async () => {
+    const {error} = await supabase.auth.signOut();
+    if (error) {
+      Alert.alert('Logout failed', error.message);
     }
   };
 
@@ -244,10 +252,15 @@ export default function App() {
 
       {/* Header */}
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>💬 Tiny Board</Text>
-        <Text style={styles.headerSubtitle}>
-          {posts.length} {posts.length === 1 ? 'message' : 'messages'}
-        </Text>
+        <View>
+          <Text style={styles.headerTitle}>💬 Tiny Board</Text>
+          <Text style={styles.headerSubtitle}>
+            {posts.length} {posts.length === 1 ? 'message' : 'messages'}
+          </Text>
+        </View>
+        <TouchableOpacity onPress={handleLogout} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+          <Text style={styles.logoutText}>Log Out</Text>
+        </TouchableOpacity>
       </View>
 
       {/* Feed */}
