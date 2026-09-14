@@ -10,10 +10,10 @@ export default function Root() {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        supabase.auth.getSession().then(({data})) => {
+        supabase.auth.getSession().then(({data}) => {
             setSession(data.session);
             setLoading(false);
-        }
+        });
 
         const{data:sub} = supabase.auth.onAuthStateChange((_event, s) => {
             setSession(s);
