@@ -14,7 +14,7 @@ import {
 } from 'react-native';
 import { createPost, deletePost, fetchPosts, Post, subscribeToPosts, updatePost } from './api';
 import { styles } from './styles';
-import {supabase} from './supabase';
+import { supabase } from './supabase';
 
 // Emoji palette
 const EMOJIS = ['😃', '😢', '😡', '❤️', '🎉', '🤔'];
@@ -54,7 +54,7 @@ export default function App() {
         setPosts((prev) => [newPost, ...prev]);
       },
       onUpdate: (updatedPost) => {
-        setPosts((prev) => 
+        setPosts((prev) =>
           prev.map((p) => (p.id === updatedPost.id ? updatedPost : p))
         );
       },
@@ -77,7 +77,7 @@ export default function App() {
   };
 
   const handleLogout = async () => {
-    const {error} = await supabase.auth.signOut();
+    const { error } = await supabase.auth.signOut();
     if (error) {
       Alert.alert('Logout failed', error.message);
     }
@@ -116,7 +116,7 @@ export default function App() {
 
     const now = new Date().toISOString();
 
-    setPosts((prev) => 
+    setPosts((prev) =>
       prev.map((p) => (p.id === id ? { ...p, message: trimmed, emoji: editEmoji, created_at: now } : p))
     );
     setEditingId(null);
@@ -133,7 +133,7 @@ export default function App() {
       'Delete message?',
       'This cannot be undone.',
       [
-        {text: 'Cancel', style: 'cancel'},
+        { text: 'Cancel', style: 'cancel' },
         {
           text: 'Delete',
           style: 'destructive',
@@ -220,7 +220,6 @@ export default function App() {
                   >
                     <Text style={styles.postActionIcon}>✏️</Text>
                   </TouchableOpacity>
-                  // )}
                   <TouchableOpacity
                     style={styles.postActionButton}
                     onPress={() => confirmDelete(item.id)}

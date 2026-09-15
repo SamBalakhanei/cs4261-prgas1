@@ -55,15 +55,15 @@ export async function updatePost(id: string, message: string, emoji: string): Pr
       .from('posts')
       .update({ message, emoji, created_at: new Date().toISOString() })
       .eq('id', id);
-    
+
     if (error) {
-      console.error('Error updating post: , error.message');
+      console.error('Error updating post:', error.message);
       return false;
     }
     return true;
   } catch (error: any) {
     console.error('Error updating post: ', error.message);
-    return false;  
+    return false;
   }
 }
 
@@ -74,7 +74,7 @@ export async function deletePost(id: string): Promise<boolean> {
       .from('posts')
       .delete()
       .eq('id', id);
-    
+
     if (error) {
       console.error('Error deleting post: ', error.message);
       return false;
