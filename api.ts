@@ -6,6 +6,7 @@ export interface Post {
   message: string;
   emoji: string;
   created_at: string;
+  // user_id: string;
 }
 
 // Fetch all posts (newest first)
