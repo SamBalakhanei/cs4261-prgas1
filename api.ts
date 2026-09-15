@@ -6,7 +6,7 @@ export interface Post {
   message: string;
   emoji: string;
   created_at: string;
-  // user_id: string;
+  user_id: string;
 }
 
 // Fetch all posts (newest first)
@@ -32,9 +32,16 @@ export async function fetchPosts(): Promise<Post[]> {
 // Insert a new post
 export async function createPost(message: string, emoji: string): Promise<boolean> {
   try {
+    const {data:{user}} = await supabase.auth.getUser();
+    if (!user) {
+      console.error('Cannot create post with no authenticated user');
+      return false;
+    }
+
     const { error } = await supabase
       .from('posts')
-      .insert({ message, emoji });
+      // need to insert user id too so we can have a non-null user id and check properly for authentication
+      .insert({ message, emoji, user_id: user.id});
 
     if (error) {
       console.error('Error creating post:', error.message);

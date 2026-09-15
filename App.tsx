@@ -29,15 +29,15 @@ export default function App() {
   const [editEmoji, setEditEmoji] = useState('😃');
   const buttonScale = useRef(new Animated.Value(1)).current;
 
-  // const [currUid, setCurrUid] = useState<string | null>(null);
+  const [currUid, setCurrUid] = useState<string | null>(null);
 
   // Fetch posts & subscribe to realtime
   useEffect(() => {
 
     // add a use effect on load to set the user id to the current owner of the session (from log in)
-    // supabase.auth.getUser().then(({data}) => {
-    //   setCurrUid(data.user?.id ?? null)
-    // });
+    supabase.auth.getUser().then(({data}) => {
+      setCurrUid(data.user?.id ?? null)
+    });
 
     const load = async () => {
       const data = await fetchPosts();
@@ -161,7 +161,9 @@ export default function App() {
   // Render a single post
   const renderPost = ({ item }: { item: Post }) => {
     const isEditing = editingId === item.id;
-    // const isAuthor = item.user_id == currUid;
+    const isAuthor = item.user_id == currUid;
+
+    console.log('post.user_id:', item.user_id, 'currUid:', currUid, 'match:', isAuthor);
 
     return (
       <View style={styles.postCard}>
@@ -212,22 +214,24 @@ export default function App() {
               <View style={styles.postHeaderRow}>
                 <Text style={styles.postMessage}>{item.message}</Text>
                 <View style={styles.postActions}>
-                  {/* {isAuthor && ( */}
-                  <TouchableOpacity
-                    style={styles.postActionButton}
-                    onPress={() => startEdit(item)}
-                    hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
-                  >
-                    <Text style={styles.postActionIcon}>✏️</Text>
-                  </TouchableOpacity>
-                  // )}
-                  <TouchableOpacity
-                    style={styles.postActionButton}
-                    onPress={() => confirmDelete(item.id)}
-                    hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
-                  >
-                    <Text style={styles.postActionIcon}>🗑️</Text>
-                  </TouchableOpacity>
+                  {isAuthor && (
+                    <TouchableOpacity
+                      style={styles.postActionButton}
+                      onPress={() => startEdit(item)}
+                      hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
+                    >
+                      <Text style={styles.postActionIcon}>✏️</Text>
+                    </TouchableOpacity>
+                  )}
+                  {isAuthor && (
+                    <TouchableOpacity
+                      style={styles.postActionButton}
+                      onPress={() => confirmDelete(item.id)}
+                      hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
+                    >
+                      <Text style={styles.postActionIcon}>🗑️</Text>
+                    </TouchableOpacity>
+                  )}
                 </View>
               </View>
               <Text style={styles.postTime}>{formatTime(item.created_at)}</Text>
