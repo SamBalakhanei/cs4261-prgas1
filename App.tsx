@@ -163,8 +163,6 @@ export default function App() {
     const isEditing = editingId === item.id;
     const isAuthor = item.user_id == currUid;
 
-    console.log('post.user_id:', item.user_id, 'currUid:', currUid, 'match:', isAuthor);
-
     return (
       <View style={styles.postCard}>
         <Text style={styles.postEmoji}>{item.emoji}</Text>
